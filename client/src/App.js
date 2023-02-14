@@ -5,8 +5,14 @@ import RequireAuth from "./components/RequireAuth";
 import ContractsPage from "./pages/ContractsPage";
 
 import "./App.css";
+import { useEffect } from "react";
 
 const App = () => {
+
+  useEffect(() => {
+    localStorage.removeItem("user");
+  }, [])
+
   return (
     <Router>
       <Routes>

@@ -3,6 +3,7 @@ package controllers
 import (
 	"strconv"
 	"time"
+	"strings"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/golang-jwt/jwt/v4"
@@ -24,7 +25,7 @@ func Login(c *fiber.Ctx) error {
 
 	var user models.Admin
 
-	database.DB.Where("address = ?", data.Address).First(&user)
+	database.DB.Where("LOWER(address) = ?", strings.ToLower(data.Address)).First(&user)
 
 	if user.Id == 0 {
 		c.Status(fiber.StatusNotFound)

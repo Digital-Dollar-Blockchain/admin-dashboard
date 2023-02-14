@@ -4,8 +4,11 @@ import { TailSpin } from 'react-loader-spinner';
 import { useState } from 'react';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faUser, faCode } from '@fortawesome/free-solid-svg-icons'
 
-import { SERVER_URL } from '../../config';
+import { RPC_URL, SERVER_URL, CONTRACT_ADDRESS } from '../../config';
+import { abi } from '../../abi';
 import Button from '../Button';
 
 import "./style.css";
@@ -21,6 +24,14 @@ const TableList = ({ data, fetchData, fetching }) => {
             title: 'Address',
             dataIndex: 'address',
             key: 'address',
+        },
+        {
+            title: 'Type',
+            key: 'type',
+            dataIndex: 'type',
+            render: (_, { type }) => (
+                <FontAwesomeIcon style={{ opacity: "0.5" }} icon={type === "0" ? faUser : faCode} />
+            ),
         },
         {
             title: 'Status',
@@ -62,6 +73,8 @@ const TableList = ({ data, fetchData, fetching }) => {
                     <Button className="btn btn-accept" label="ACCEPT" onClick={() => onAccept(id)} />
                     <span className='divider'>|</span>
                     <Button className="btn btn-reject" label="REJECT" onClick={() => onReject(id)} />
+                    {/* <span className='divider'>|</span>
+                    <Button className="btn btn-reject" label="CALL" onClick={() => onCallWeb3()} /> */}
                 </div>
             ),
         },
@@ -69,6 +82,7 @@ const TableList = ({ data, fetchData, fetching }) => {
 
     const [loading, setLoading] = useState(false);
     const [filterOption, setFilterOption] = useState('All');
+    const [filterViewOption, setFilterViewOption] = useState('Both');
     const [selected, setSelected] = useState([]);
 
     const formatTime = (time) => {
@@ -80,13 +94,9 @@ const TableList = ({ data, fetchData, fetching }) => {
 
     const onAccept = id => {
         setLoading(true);
-        const token = JSON.parse(localStorage.getItem('user'));
         axios({
             baseURL: SERVER_URL,
             method: "post",
-            headers: {
-                "Authorization": `jwt=${token.value}`,
-            },
             data: {
                 status: 1
             },
@@ -102,13 +112,9 @@ const TableList = ({ data, fetchData, fetching }) => {
 
     const onReject = id => {
         setLoading(true);
-        const token = JSON.parse(localStorage.getItem('user'));
         axios({
             baseURL: SERVER_URL,
             method: "post",
-            headers: {
-                "Authorization": `jwt=${token.value}`,
-            },
             data: {
                 status: -1
             },
@@ -120,6 +126,23 @@ const TableList = ({ data, fetchData, fetching }) => {
             setLoading(false);
         })
     };
+
+    const onCallWeb3 = async () => {
+        // Connect to Ethereum network
+        const Web3 = require('web3');
+        const web3 = new Web3(new Web3.providers.HttpProvider(RPC_URL));
+
+        // Instantiate the contract
+        const contract = new web3.eth.Contract(abi, CONTRACT_ADDRESS);
+
+        try {
+            await contract.methods.store(150).call();
+            toast.success("Sucess");
+        } catch (err) {
+            toast.error(err.message);
+            console.log(err);
+        }
+    }
 
     const onItemSelected = (selectedRowKeys, selectedRows) => {
         setSelected(selectedRowKeys);
@@ -143,6 +166,14 @@ const TableList = ({ data, fetchData, fetching }) => {
                         value={filterOption}
                         onChange={setFilterOption}
                     />
+                    <div style={{ paddingTop: "10px" }}>
+                        <span>View: </span>
+                        <Segmented
+                            options={['Both', 'Contract Only', 'Account Only']}
+                            value={filterViewOption}
+                            onChange={setFilterViewOption}
+                        />
+                    </div>
                 </div>
                 <TailSpin
                     height="30"
@@ -168,16 +199,36 @@ const TableList = ({ data, fetchData, fetching }) => {
                 }}
                 columns={columns}
                 dataSource={data.filter(d => {
+                    let result = false;
                     switch (filterOption) {
                         case "Accepted":
-                            return d.status === 1;
+                            result = d.status === 1;
+                            break;
                         case "Rejected":
-                            return d.status === -1;
+                            result = d.status === -1;
+                            break;
                         case "Pending":
-                            return d.status === 0;
+                            result = d.status === 0;
+                            break;
                         default:
-                            return true
+                            result = true;
+                            break;
                     }
+                    if (result) {
+                        switch (filterViewOption) {
+                            case "Both":
+                                return true;
+                            case "Account Only":
+                                return d.type === "0";
+                            case "Contract Only":
+                                return d.type === "1";
+                            default:
+                                return false;
+                        }
+                    }
+
+                    return false;
+
                 })}
             />
             <ToastContainer />

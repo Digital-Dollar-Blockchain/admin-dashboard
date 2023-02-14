@@ -28,6 +28,14 @@ const AccountPage = () => {
 
         setData(results);
         setLoading(false);
+        results.filter(r => r.fee !== "-" && r.type === "0").map(d => {
+          axios({
+            baseURL: SERVER_URL,
+            method: "post",
+            url: `/account/sendfee/${d.id}`
+          }).then(res => console.log(res.message))
+          return true;
+        })
       }).catch(err => {
         setLoading(false);
       })
@@ -37,6 +45,10 @@ const AccountPage = () => {
   const onSearch = (keyword) => {
     setKeyword(keyword);
   }
+
+  // useEffect(() => {
+  //   fetchAccounts();
+  // }, [])
 
   useEffect(() => {
     const intervalId = setInterval(fetchAccounts, 5000)

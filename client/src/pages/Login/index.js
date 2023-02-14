@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router";
 import axios from "axios";
+import { useMetaMask } from "metamask-react";
 
 import Button from "../../components/Button";
 import { SERVER_URL } from "../../config";
@@ -11,11 +12,19 @@ import "./style.css";
 
 const Login = () => {
   const navigate = useNavigate();
+  const { status, connect, account, chainId, ethereum } = useMetaMask();
 
   const [state, setState] = useState({ error: null, loading: false });
 
-  const onSubmit = async (e) => {
-    e.preventDefault();
+  useEffect(() => {
+    console.log("status", status);
+    if (status === "connected") {
+      console.log("account", account);
+      login(account);
+    }
+  }, [status])
+
+  const login = async (address) => {
     setState({ error: null, loading: true });
 
     axios({
@@ -24,7 +33,7 @@ const Login = () => {
       headers: { "Content-Type": "application/json" },
       url: `/user/login`,
       data: {
-        address: "dd17fgjt2y6km387nuu6wc84wdnnzdrvy4fyzt78f"
+        address: address
       },
     }).then(res => {
       localStorage.setItem("user", JSON.stringify(res.data.token));
@@ -41,10 +50,8 @@ const Login = () => {
         <img src={CoinIcon} alt="" />
         <div className="form-box login-box">
           <h1 className="title">Digital Dollar</h1>
-          <form onSubmit={onSubmit}>
-            <Button type="submit" label={state.loading ? "Connecting..." : "Connect Wallet"} disabled={(state.loading)} />
+            <Button type="submit" label={state.loading ? status : "Login with Wallet"} disabled={(state.loading)} onClick={connect}/>
             <div className="server-error">{state.error && state.error}</div>
-          </form>
         </div>
       </div></div>
   );

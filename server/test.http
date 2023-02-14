@@ -22,3 +22,6 @@ Authorization: jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2NzM5MzMyMzAs
 {
     "status": 1
 }
+
+###
+POST http://3.145.87.221:5000/api/v1/account/add/dd1fywddpu6p7yjgsmmz0hrqzp59tccwwj3sv0hex  HTTP/1.1

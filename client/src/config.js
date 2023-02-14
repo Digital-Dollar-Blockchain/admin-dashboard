@@ -1,1 +1,4 @@
-export const SERVER_URL = "http://localhost:5000/api/v1";
+export const SERVER_URL = "http://3.145.87.221:5000/api/v1";  //3.145.87.221
+export const RPC_URL = "http://3.145.87.221:8545";
+export const OWNER_ADDRESS = "0x044204e7E8d4F8F18E3164B7dFC1f8D0Ac550337";
+export const CONTRACT_ADDRESS = "0x86978331206f2B24A93426B09391b128Ba14E70b";
